@@ -1,20 +1,14 @@
 package main
 
 import (
-	"fmt"
-	"log"
-	"net/http"
+	r "repo/settings"
+	db "repo/sqldb"
 
-	"github.com/gorilla/mux"
+	_ "github.com/go-sql-driver/mysql"
 )
 
-func testFirst(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Response")
-}
-
 func main() {
+	db.ConnectDB()
 
-	router := mux.NewRouter()
-	router.HandleFunc("/test", testFirst)
-	log.Fatal(http.ListenAndServe(":8080", router))
+	r.Router()
 }
