@@ -44,14 +44,21 @@ func CreateUser(newUser model.NewUser, w http.ResponseWriter) {
 	}
 
 	stmt, err := sqldb.DB.Prepare(`INSERT INTO task_mgr.user (username, email, password, Id, admin) VALUES (?,?,?,?,?)`)
-	row, err := stmt.Exec(newUser.Username, newUser.Email, newUser.Password, amount+1, 0)
+	userRow, err := stmt.Exec(newUser.Username, newUser.Email, newUser.Password, amount+1, 0)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		log.Printf("Error Inserting Record")
 		return
 	}
-	lastId, err := row.LastInsertId()
-	fmt.Printf("Last Insert Id : %d\n", lastId)
+	stmt2, err := sqldb.DB.Prepare(`INSERT INTO task_mgr.user_profile (Id, Fname, Lname, Age, Sex, Add1, Add2, Add3, County, Country) VALUES (?,?,?,?,?,?,?,?,?,?)`)
+	userProfileRow, err := stmt2.Exec(amount+1, newUser.Fname, newUser.Lname, newUser.Age, newUser.Sex, newUser.Address1, newUser.Address2, newUser.Address3, newUser.County, newUser.Country)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		log.Printf("Error Inserting Profile Record")
+	}
+	lastId, err := userRow.LastInsertId()
+	lastProfileId, err := userProfileRow.LastInsertId()
+	fmt.Printf("Last Insert Id User Table: %d\nLast Insert Id Profile Table: %d\n", lastId, lastProfileId)
 	return
 
 }
