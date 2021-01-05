@@ -22,24 +22,41 @@ func createErrorMsg(message string, w http.ResponseWriter) {
 
 }
 
-func UserLogIn(w http.ResponseWriter, r *http.Request) {
-	var u model.User
-	loggedInUser := &model.LogInUser{}
+func addCorsHeader(res http.ResponseWriter) {
+	headers := res.Header()
+	headers.Add("Access-Control-Allow-Origin", "*")
+	headers.Add("Vary", "Accept-Encoding, Origin")
+	headers.Add("Vary", "Access-Control-Request-Method")
+	headers.Add("Vary", "Access-Control-Request-Headers")
+	headers.Add("Access-Control-Allow-Headers", "Content-Type, Origin, Accept, token, Access-Control-Allow-Headers")
+	headers.Add("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+}
 
-	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(&loggedInUser)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		log.Fatal(err)
-	}
-	if loggedInUser.Username == "" || loggedInUser.Password == "" {
-		w.WriteHeader(http.StatusBadRequest)
-	}
-	u = *rep.GetUserByUsernameAndPassword(*loggedInUser)
-	if u.Username == "" {
-		w.WriteHeader(http.StatusNotFound)
-	} else {
-		w.WriteHeader(http.StatusOK)
+func UserLogIn(w http.ResponseWriter, r *http.Request) {
+
+	addCorsHeader(w)
+	if r.Method == "POST" {
+		var u model.User
+		loggedInUser := &model.LogInUser{}
+
+		decoder := json.NewDecoder(r.Body)
+
+		err := decoder.Decode(&loggedInUser)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			log.Fatal(err)
+		}
+		if loggedInUser.Username == "" || loggedInUser.Password == "" {
+			w.WriteHeader(http.StatusBadRequest)
+		}
+		u = *rep.GetUserByUsernameAndPassword(*loggedInUser)
+		if u.Username == "" {
+			w.WriteHeader(http.StatusNotFound)
+		} else {
+
+			w.WriteHeader(http.StatusOK)
+			json.NewEncoder(w).Encode(u)
+		}
 	}
 
 }
