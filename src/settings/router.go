@@ -18,5 +18,6 @@ func Router() {
 	v1Router.HandleFunc("/signup", controller.UserSignUp).Methods(http.MethodPost, http.MethodOptions)
 	v1Router.HandleFunc("/update/profile", controller.UpdateUserProfile).Methods(http.MethodPost, http.MethodOptions)
 	v1Router.HandleFunc("/update/account", controller.UpdateUserAccount).Methods(http.MethodPost, http.MethodOptions)
+	v1Router.HandleFunc("/user", controller.GetUserById).Methods(http.MethodGet)
 	log.Fatal(http.ListenAndServe(":8080", router))
 }

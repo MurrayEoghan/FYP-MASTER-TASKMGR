@@ -162,3 +162,28 @@ func UpdateUserAccount(w http.ResponseWriter, r *http.Request) {
 
 	}
 }
+
+func GetUserById(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "GET" {
+		id := &model.UserId{}
+		decoder := json.NewDecoder(r.Body)
+		err := decoder.Decode(&id)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			createErrorMsg("Error Decoding", w)
+			log.Printf("Failed to Decode")
+			return
+		}
+		user := rep.GetUserById(*id)
+		if user.Username == "" {
+			w.WriteHeader(http.StatusNotFound)
+			createErrorMsg("Id Not Found", w)
+			return
+		} else {
+			w.WriteHeader(http.StatusOK)
+			encoder := json.NewEncoder(w)
+			encoder.Encode(user)
+			return
+		}
+	}
+}
