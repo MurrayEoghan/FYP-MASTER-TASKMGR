@@ -76,6 +76,24 @@ func UpdateProfile(profile model.NewUserProfile) int64 {
 	return 1
 }
 
+func UserExistsWithDifferentId(account model.UpdateUserAccount) *model.User {
+	user := &model.User{}
+	stmt, err := sqldb.DB.Query("SELECT * FROM task_mgr.user WHERE user.id != ? AND email = ? OR username = ?", account.Id, account.Email, account.Username)
+	if err != nil {
+		log.Printf(err.Error())
+		return &model.User{}
+	}
+	defer stmt.Close()
+	for stmt.Next() {
+		err := stmt.Scan(&user.Username, &user.Email, &user.Password, &user.Id, &user.Admin)
+		if err != nil {
+			fmt.Println(err)
+		}
+		fmt.Printf("%s", user.Username)
+	}
+	return user
+}
+
 func UpdateAccount(account model.UpdateUserAccount) int64 {
 	stmt, err := sqldb.DB.Prepare(`UPDATE task_mgr.user SET username = ?, email = ?, password = ? WHERE Id = ?`)
 	if err != nil {
@@ -86,9 +104,9 @@ func UpdateAccount(account model.UpdateUserAccount) int64 {
 	return 1
 }
 
-func GetUserById(id model.UserId) *model.WholeUser {
+func GetUserById(id int) *model.WholeUser {
 	wholeUser := &model.WholeUser{}
-	row := sqldb.DB.QueryRow(`SELECT task_mgr.user.username, task_mgr.user.email, task_mgr.user.Id, task_mgr.user_profile.Fname, task_mgr.user_profile.Lname, task_mgr.user_profile.Age, task_mgr.user_profile.Sex, task_mgr.user_profile.Add1, task_mgr.user_profile.Add2, task_mgr.user_profile.Add3, task_mgr.user_profile.County, task_mgr.user_profile.Country FROM task_mgr.user, task_mgr.user_profile WHERE task_mgr.user.Id = ? AND task_mgr.user_profile.Id = ?;`, id.UserId, id.UserId).Scan(&wholeUser.Username, &wholeUser.Email, &wholeUser.Id, &wholeUser.Fname, &wholeUser.Lname, &wholeUser.Age, &wholeUser.Gender, &wholeUser.Address1, &wholeUser.Address2, &wholeUser.Address3, &wholeUser.County, &wholeUser.Country)
+	row := sqldb.DB.QueryRow(`SELECT task_mgr.user.username, task_mgr.user.email, task_mgr.user.Id, task_mgr.user_profile.Fname, task_mgr.user_profile.Lname, task_mgr.user_profile.Age, task_mgr.user_profile.Sex, task_mgr.user_profile.Add1, task_mgr.user_profile.Add2, task_mgr.user_profile.Add3, task_mgr.user_profile.County, task_mgr.user_profile.Country FROM task_mgr.user, task_mgr.user_profile WHERE task_mgr.user.Id = ? AND task_mgr.user_profile.Id = ?;`, id, id).Scan(&wholeUser.Username, &wholeUser.Email, &wholeUser.Id, &wholeUser.Fname, &wholeUser.Lname, &wholeUser.Age, &wholeUser.Gender, &wholeUser.Address1, &wholeUser.Address2, &wholeUser.Address3, &wholeUser.County, &wholeUser.Country)
 	if row != nil {
 		return &model.WholeUser{}
 	}

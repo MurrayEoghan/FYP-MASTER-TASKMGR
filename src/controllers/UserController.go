@@ -2,10 +2,12 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	model "repo/models"
 	rep "repo/repositories"
+	"strconv"
 )
 
 type UserController interface {
@@ -149,14 +151,23 @@ func UpdateUserAccount(w http.ResponseWriter, r *http.Request) {
 
 			return
 		}
-		update := rep.UpdateAccount(*accountModel)
-		if update <= 0 {
-			w.WriteHeader(http.StatusInternalServerError)
-			createErrorMsg("Internal Server Error", w)
-			log.Printf("Error inserting record")
-			return
+		exists := rep.UserExistsWithDifferentId(*accountModel)
+
+		if exists.Username == "" && exists.Email == "" {
+			update := rep.UpdateAccount(*accountModel)
+			if update <= 0 {
+				w.WriteHeader(http.StatusInternalServerError)
+				createErrorMsg("Internal Server Error", w)
+				log.Printf("Error inserting record")
+				return
+			} else {
+				w.WriteHeader(http.StatusNoContent)
+				return
+			}
 		} else {
-			w.WriteHeader(http.StatusNoContent)
+			w.WriteHeader(http.StatusConflict)
+			createErrorMsg("User details already exist", w)
+			log.Printf("Details entered already exist")
 			return
 		}
 
@@ -164,17 +175,22 @@ func UpdateUserAccount(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetUserById(w http.ResponseWriter, r *http.Request) {
+	addCorsHeader(w)
 	if r.Method == "GET" {
-		id := &model.UserId{}
-		decoder := json.NewDecoder(r.Body)
-		err := decoder.Decode(&id)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			createErrorMsg("Error Decoding", w)
-			log.Printf("Failed to Decode")
+		query := r.URL.Query()
+		retrievedId, found := query["id"]
+		if !found || len(retrievedId) == 0 {
+			log.Printf("Filter Not Present Or Incorrect")
 			return
 		}
-		user := rep.GetUserById(*id)
+		id, err := strconv.Atoi(retrievedId[0])
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Printf("Couldnt convert string to int")
+			return
+		}
+
+		user := rep.GetUserById(id)
 		if user.Username == "" {
 			w.WriteHeader(http.StatusNotFound)
 			createErrorMsg("Id Not Found", w)
