@@ -88,9 +88,10 @@ func UserSignUp(w http.ResponseWriter, r *http.Request) {
 		}
 		exists := *rep.UserExists(newUser.Username, newUser.Email)
 		if exists.Username == "" && exists.Email == "" {
+			w.WriteHeader(http.StatusCreated)
 			userId.UserId = rep.CreateUser(*newUser, w)
 			json.NewEncoder(w).Encode(userId)
-			w.WriteHeader(http.StatusCreated)
+
 			return
 
 		} else {

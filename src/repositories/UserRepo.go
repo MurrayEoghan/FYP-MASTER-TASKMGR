@@ -37,23 +37,16 @@ func UserExists(username string, email string) *model.User {
 }
 
 func CreateUser(newUser model.NewUser, w http.ResponseWriter) int64 {
-	var amount int
 
-	count := sqldb.DB.QueryRow("SELECT COUNT(Id) FROM task_mgr.user").Scan(&amount)
-	if count != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return 0
-	}
-
-	stmt, err := sqldb.DB.Prepare(`INSERT INTO task_mgr.user (username, email, password, Id, admin) VALUES (?,?,?,?,?)`)
-	userRow, err := stmt.Exec(newUser.Username, newUser.Email, newUser.Password, amount+1, 0)
+	stmt, err := sqldb.DB.Prepare(`INSERT INTO task_mgr.user (username, email, password,  admin) VALUES (?,?,?,?)`)
+	userRow, err := stmt.Exec(newUser.Username, newUser.Email, newUser.Password, 0)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		log.Printf("Error Inserting Record")
 		return 0
 	}
-	stmt2, err := sqldb.DB.Prepare(`INSERT INTO task_mgr.user_profile (Id, Fname, Lname, Age, Sex, Add1, Add2, Add3, County, Country) VALUES (?,?,?,?,?,?,?,?,?,?)`)
-	userProfileRow, err := stmt2.Exec(amount+1, "", "", 0, "", "", "", "", "", "")
+	stmt2, err := sqldb.DB.Prepare(`INSERT INTO task_mgr.user_profile (Fname, Lname, Age, Sex, Add1, Add2, Add3, County, Country) VALUES (?,?,?,?,?,?,?,?,?)`)
+	userProfileRow, err := stmt2.Exec("", "", 0, "", "", "", "", "", "")
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		log.Printf("Error Inserting Profile Record")
@@ -78,7 +71,7 @@ func UpdateProfile(profile model.NewUserProfile) int64 {
 
 func UserExistsWithDifferentId(account model.UpdateUserAccount) *model.User {
 	user := &model.User{}
-	stmt, err := sqldb.DB.Query("SELECT * FROM task_mgr.user WHERE user.id != ? AND email = ? OR username = ?", account.Id, account.Email, account.Username)
+	stmt, err := sqldb.DB.Query("SELECT * FROM task_mgr.user WHERE Id != ? AND (email = ? OR username = ?)", account.Id, account.Email, account.Username)
 	if err != nil {
 		log.Printf(err.Error())
 		return &model.User{}
