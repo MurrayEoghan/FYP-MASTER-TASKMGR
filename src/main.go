@@ -9,6 +9,8 @@ import (
 
 func main() {
 	db.ConnectDB()
-
+	db.ConnectForumDB()
+	db.ConnectFollowerDB()
 	r.Router()
 }
+
