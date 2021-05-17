@@ -36,6 +36,9 @@ func Router() {
 	v1Router.HandleFunc("/user/{id}/followers", controller.GetFollowers).Methods(http.MethodGet)
 	v1Router.HandleFunc("/user/{id}/following", controller.GetFollowing).Methods(http.MethodGet)
 	v1Router.HandleFunc("/user/unfollow", controller.UnFollow).Methods(http.MethodOptions, http.MethodPost)
+	v1Router.HandleFunc("/user/{id}/notifications", controller.GetNotifications).Methods(http.MethodGet)
+	v1Router.HandleFunc("/user/{id}/notifications/delete", controller.DeleteNotifications).Methods(http.MethodOptions, http.MethodDelete)
+	v1Router.HandleFunc("/user/{id}/following/posts", controller.GetFollowingPosts).Methods(http.MethodGet)
 
 	log.Fatal(http.ListenAndServe(":8080", router))
 }

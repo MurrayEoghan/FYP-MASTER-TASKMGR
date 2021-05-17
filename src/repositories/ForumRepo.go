@@ -89,7 +89,6 @@ func GetTopics() []model.Topics {
 	return topics
 }
 
-
 func GetPost(postId int, w http.ResponseWriter) *model.Post {
 
 	post := &model.Post{}
@@ -138,6 +137,20 @@ func GetPost(postId int, w http.ResponseWriter) *model.Post {
 }
 
 func CreateComment(newComment model.CreateComment, w http.ResponseWriter) int64 {
+
+	post := &model.Post{}
+
+	err := sqldb.DB1.QueryRow("SELECT post_id, title, date, author, authorId, content FROM forum.listings WHERE post_id = ?", newComment.ParentPostId).Scan(&post.PostId, &post.Title, &post.Date, &post.Author, &post.AuthorId, &post.Content)
+	if err != nil {
+		log.Println(err)
+	}
+	if post.AuthorId != newComment.CommentAuthorId {
+		insert, err := sqldb.DB3.Prepare("INSERT INTO notification_service.notifications (notification_type, viewed, initiated_by_id, initiated_by_name, recipient_name, recipient_id, cause_entity) VALUES (?,?,?,?,?,?,?)")
+		insert.Exec(1, 1, newComment.CommentAuthorId, newComment.CommentAuthor, post.Author, post.AuthorId, post.PostId)
+		if err != nil {
+			log.Print("Error creating comment notification")
+		}
+	}
 
 	currentTime := time.Now()
 	stmt, err := sqldb.DB1.Prepare(`INSERT INTO forum.comments (comment, parent_post_id, comment_author, comment_author_id, post_date) VALUES (?, ?, ?, ?, ?)`)
@@ -264,6 +277,18 @@ func DeleteAnswer(deleteAnswerId int, w http.ResponseWriter) (int64, error) {
 
 func CreateAnswer(newAnswer model.CreateAnswer, w http.ResponseWriter) int64 {
 
+	post := &model.Post{}
+
+	err := sqldb.DB1.QueryRow("SELECT post_id, title, date, author, authorId, content FROM forum.listings WHERE post_id = ?", newAnswer.ParentPostId).Scan(&post.PostId, &post.Title, &post.Date, &post.Author, &post.AuthorId, &post.Content)
+	if err != nil {
+		log.Println(err)
+	}
+	insert, err := sqldb.DB3.Prepare("INSERT INTO notification_service.notifications (notification_type, viewed, initiated_by_id, initiated_by_name, recipient_name, recipient_id, cause_entity) VALUES (?,?,?,?,?,?,?)")
+	insert.Exec(2, 1, newAnswer.AuthorId, newAnswer.Author, post.Author, post.AuthorId, post.PostId)
+	if err != nil {
+		log.Print("Error creating answer notification")
+	}
+
 	stmt, err := sqldb.DB1.Prepare(`INSERT INTO forum.answers (parent_post_id, answer_author_id, answer_author_profession, answer, answer_author) VALUES (?, ?, ?, ?, ?)`)
 	postRow, err := stmt.Exec(newAnswer.ParentPostId, newAnswer.AuthorId, newAnswer.AuthorProfession, newAnswer.Answer, newAnswer.Author)
 	if err != nil {
@@ -273,7 +298,7 @@ func CreateAnswer(newAnswer model.CreateAnswer, w http.ResponseWriter) int64 {
 	}
 
 	newPostId, err := postRow.LastInsertId()
-	fmt.Printf("\nNew Answer ID : %d", newPostId)
+
 	return newPostId
 
 }

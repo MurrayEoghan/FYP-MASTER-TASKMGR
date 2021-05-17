@@ -39,8 +39,7 @@ func UserExists(username string, email string) *model.User {
 }
 
 func CreateUser(newUser model.NewUser, w http.ResponseWriter) int64 {
-
-	stmt, err := sqldb.DB.Prepare(`INSERT INTO task_mgr.user (username, email, password,  admin) VALUES (?,?,?,?)`)
+	stmt, err := sqldb.DB.Prepare(`INSERT INTO task_mgr.user (username, email, password,  profession_id) VALUES (?,?,?,?)`)
 	userRow, err := stmt.Exec(newUser.Username, newUser.Email, newUser.Password, 0)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)

@@ -11,6 +11,7 @@ import (
 var DB *sql.DB
 var DB1 *sql.DB
 var DB2 *sql.DB
+var DB3 *sql.DB
 
 func ConnectDB() {
 	var err error
@@ -41,8 +42,19 @@ func ConnectFollowerDB() {
 	db, err := sql.Open("mysql", "root:3ManorGrove0@tcp(127.0.0.1:3306)/follower?parseTime=true")
 	if err != nil {
 		log.Fatal(err)
-	}else {
+	} else {
 		fmt.Printf("Follower DB Connected\n")
 	}
 	DB2 = db
+}
+
+func ConnectNotificationDB() {
+	var err error
+	db, err := sql.Open("mysql", "root:3ManorGrove0@tcp(127.0.0.1:3306)/notification_service?parseTime=true")
+	if err != nil {
+		log.Fatal(err)
+	} else {
+		fmt.Printf("Notification DB Connected\n")
+	}
+	DB3 = db
 }

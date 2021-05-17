@@ -61,8 +61,9 @@ func GetFollowers(w http.ResponseWriter, r *http.Request) {
 		params := mux.Vars(r)
 		id, err := strconv.Atoi(params["id"])
 		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
 			createErrorMsg("Error parsing url value", w)
-			w.WriteHeader(http.StatusInternalServerError)
+
 			return
 		}
 		res := repo.GetFollowers(id)
@@ -86,8 +87,9 @@ func GetFollowing(w http.ResponseWriter, r *http.Request) {
 		id, err := strconv.Atoi(params["id"])
 
 		if err != nil {
-			createErrorMsg("Error parsing url value", w)
 			w.WriteHeader(http.StatusInternalServerError)
+			createErrorMsg("Error parsing url value", w)
+
 			return
 		}
 		res := repo.GetFollowing(id)
@@ -99,6 +101,29 @@ func GetFollowing(w http.ResponseWriter, r *http.Request) {
 		} else {
 			w.WriteHeader(http.StatusOK)
 			json.NewEncoder(w).Encode(res)
+		}
+
+	}
+}
+
+func GetFollowingPosts(w http.ResponseWriter, r *http.Request) {
+	addCorsHeader(w)
+	if r.Method == "GET" {
+		params := mux.Vars(r)
+		id, err := strconv.Atoi(params["id"])
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			createErrorMsg("Error parsing url value", w)
+			return
+		}
+		values, err := repo.GetFollowingPosts(id, w)
+		if err != nil {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		} else {
+			w.WriteHeader(http.StatusOK)
+			json.NewEncoder(w).Encode(values)
+
 		}
 
 	}

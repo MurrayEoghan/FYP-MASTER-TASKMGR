@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	models "repo/models/forumModels"
@@ -134,8 +133,8 @@ func GetRecentPosts(w http.ResponseWriter, r *http.Request) {
 		}
 		posts := repo.GetRecentPosts(authorId.AuthorId, w)
 		if posts == nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			createErrorMsg("Check Repo. Unexpected error occured", w)
+			w.WriteHeader(http.StatusNotFound)
+			createErrorMsg("Check Repo. No Posts Found", w)
 			return
 		} else {
 
@@ -202,7 +201,7 @@ func DeleteComment(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		fmt.Printf("%d", id)
+
 		value, err := repo.DeleteComment(id, w)
 		if value < 0 {
 			createErrorMsg("Unknown Error Occurred", w)
