@@ -16,11 +16,13 @@ type UserRepo interface {
 	CreateUser(newUser model.NewUser, w http.ResponseWriter) int64
 	UpdateProfile(profile model.NewUserProfile) int64
 	UpdateAccount(account model.UpdateUserAccount) int64
+	UserExistsWithDifferentId(account model.UpdateUserAccount) *model.User
+	GetUserById(id int) *model.WholeUser
 }
 
 func GetUserByUsernameAndPassword(loggedInUser model.LogInUser) *model.User {
 	user := &model.User{}
-	row := sqldb.DB.QueryRow(`SELECT * FROM task_mgr.user WHERE username = ? AND password = ?`, loggedInUser.Username, loggedInUser.Password).Scan(&user.Username, &user.Email, &user.Password, &user.Id, &user.Admin)
+	row := sqldb.DB.QueryRow(`SELECT * FROM task_mgr.user WHERE username = ? AND password = ?`, loggedInUser.Username, loggedInUser.Password).Scan(&user.Username, &user.Email, &user.Password, &user.Id, &user.ProfessionId)
 	if row != nil {
 		return &model.User{}
 	}
@@ -29,7 +31,7 @@ func GetUserByUsernameAndPassword(loggedInUser model.LogInUser) *model.User {
 
 func UserExists(username string, email string) *model.User {
 	user := &model.User{}
-	row := sqldb.DB.QueryRow(`SELECT * FROM task_mgr.user WHERE username = ? OR email = ?`, username, email).Scan(&user.Username, &user.Email, &user.Password, &user.Id, &user.Admin)
+	row := sqldb.DB.QueryRow(`SELECT * FROM task_mgr.user WHERE username = ? OR email = ?`, username, email).Scan(&user.Username, &user.Email, &user.Password, &user.Id, &user.ProfessionId)
 	if row != nil {
 		return &model.User{}
 	}
@@ -37,8 +39,7 @@ func UserExists(username string, email string) *model.User {
 }
 
 func CreateUser(newUser model.NewUser, w http.ResponseWriter) int64 {
-
-	stmt, err := sqldb.DB.Prepare(`INSERT INTO task_mgr.user (username, email, password,  admin) VALUES (?,?,?,?)`)
+	stmt, err := sqldb.DB.Prepare(`INSERT INTO task_mgr.user (username, email, password,  profession_id) VALUES (?,?,?,?)`)
 	userRow, err := stmt.Exec(newUser.Username, newUser.Email, newUser.Password, 0)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -78,7 +79,7 @@ func UserExistsWithDifferentId(account model.UpdateUserAccount) *model.User {
 	}
 	defer stmt.Close()
 	for stmt.Next() {
-		err := stmt.Scan(&user.Username, &user.Email, &user.Password, &user.Id, &user.Admin)
+		err := stmt.Scan(&user.Username, &user.Email, &user.Password, &user.Id, &user.ProfessionId)
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -99,7 +100,7 @@ func UpdateAccount(account model.UpdateUserAccount) int64 {
 
 func GetUserById(id int) *model.WholeUser {
 	wholeUser := &model.WholeUser{}
-	row := sqldb.DB.QueryRow(`SELECT task_mgr.user.username, task_mgr.user.email, task_mgr.user.Id, task_mgr.user_profile.Fname, task_mgr.user_profile.Lname, task_mgr.user_profile.Age, task_mgr.user_profile.Sex, task_mgr.user_profile.Add1, task_mgr.user_profile.Add2, task_mgr.user_profile.Add3, task_mgr.user_profile.County, task_mgr.user_profile.Country FROM task_mgr.user, task_mgr.user_profile WHERE task_mgr.user.Id = ? AND task_mgr.user_profile.Id = ?;`, id, id).Scan(&wholeUser.Username, &wholeUser.Email, &wholeUser.Id, &wholeUser.Fname, &wholeUser.Lname, &wholeUser.Age, &wholeUser.Gender, &wholeUser.Address1, &wholeUser.Address2, &wholeUser.Address3, &wholeUser.County, &wholeUser.Country)
+	row := sqldb.DB.QueryRow(`SELECT task_mgr.user.username, task_mgr.user.email, task_mgr.user.profession_id, task_mgr.user.Id, task_mgr.user_profile.Fname, task_mgr.user_profile.Lname, task_mgr.user_profile.Age, task_mgr.user_profile.Sex, task_mgr.user_profile.Add1, task_mgr.user_profile.Add2, task_mgr.user_profile.Add3, task_mgr.user_profile.County, task_mgr.user_profile.Country FROM task_mgr.user, task_mgr.user_profile WHERE task_mgr.user.Id = ? AND task_mgr.user_profile.Id = ?;`, id, id).Scan(&wholeUser.Username, &wholeUser.Email, &wholeUser.ProfessionId, &wholeUser.Id, &wholeUser.Fname, &wholeUser.Lname, &wholeUser.Age, &wholeUser.Gender, &wholeUser.Address1, &wholeUser.Address2, &wholeUser.Address3, &wholeUser.County, &wholeUser.Country)
 	if row != nil {
 		return &model.WholeUser{}
 	}
