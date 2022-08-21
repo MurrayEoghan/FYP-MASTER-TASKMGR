@@ -15,7 +15,7 @@ var DB3 *sql.DB
 
 func ConnectDB() {
 	var err error
-	db, err := sql.Open("mysql", "root:3ManorGrove0@tcp(127.0.0.1:3306)/task_mgr")
+	db, err := sql.Open("mysql", "root:PASSWORD@tcp(127.0.0.1:3306)/task_mgr")
 	if err != nil {
 		log.Fatal(err)
 	} else {
@@ -27,7 +27,7 @@ func ConnectDB() {
 
 func ConnectForumDB() {
 	var err error
-	db, err := sql.Open("mysql", "root:3ManorGrove0@tcp(127.0.0.1:3306)/forum?parseTime=true")
+	db, err := sql.Open("mysql", "root:PASSWORD@tcp(127.0.0.1:3306)/forum?parseTime=true")
 	if err != nil {
 		log.Fatal(err)
 	} else {
@@ -39,7 +39,7 @@ func ConnectForumDB() {
 
 func ConnectFollowerDB() {
 	var err error
-	db, err := sql.Open("mysql", "root:3ManorGrove0@tcp(127.0.0.1:3306)/follower?parseTime=true")
+	db, err := sql.Open("mysql", "root:PASSWORD@tcp(127.0.0.1:3306)/follower?parseTime=true")
 	if err != nil {
 		log.Fatal(err)
 	} else {
@@ -50,7 +50,7 @@ func ConnectFollowerDB() {
 
 func ConnectNotificationDB() {
 	var err error
-	db, err := sql.Open("mysql", "root:3ManorGrove0@tcp(127.0.0.1:3306)/notification_service?parseTime=true")
+	db, err := sql.Open("mysql", "root:PASSWORD@tcp(127.0.0.1:3306)/notification_service?parseTime=true")
 	if err != nil {
 		log.Fatal(err)
 	} else {
